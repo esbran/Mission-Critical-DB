@@ -44,6 +44,13 @@ namespace Viva
                     {
                         Path = "/*"
                     }
+                },
+                ExcludedPaths =
+                {
+                    new ExcludedPath
+                    {
+                        Path = "/ignore"
+                    }
                 }
             };
 
