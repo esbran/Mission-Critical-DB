@@ -17,7 +17,6 @@ namespace Viva
             {
                 Program p = new Program();
                 await p.CreateDatabase();
-
             }
             catch (CosmosException cosmosException)
             {
@@ -27,7 +26,6 @@ namespace Viva
             {
                 Console.WriteLine("Error: {0}", e);
             }
-
         }
         public async Task CreateDatabase()
         {
@@ -49,7 +47,6 @@ namespace Viva
 
         private async Task CreateTransactions(DBHelper dbh)
         {
-
             for(int i=0; i<1000; i++)
             {
                 Random gen = new Random();
@@ -110,9 +107,6 @@ namespace Viva
             DateTime start = new DateTime(2022, 1, 1);
             int range = (DateTime.Today - start).Days;           
             return start.AddDays(gen.Next(range));
-            
-
         }
-
     }
 }

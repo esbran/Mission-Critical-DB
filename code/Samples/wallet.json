@@ -1,0 +1,21 @@
+{
+    "clientId": "",
+    "wallet": [
+        {
+            "walletId": "",
+            "bookBalance": "",
+            "reservedBalance": "",
+            "subwallet": [
+                {
+                    "subwalletId": "",
+                    "balance": ""
+                }
+            ]
+        }
+    ],
+    "card": [
+        {
+            "cardNumber": ""
+        }
+    ]
+}

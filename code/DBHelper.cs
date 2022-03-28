@@ -28,9 +28,7 @@ namespace Viva
         public async Task CreateDatabaseAsync(string DatabaseName)
         {
             databaseId = DatabaseName;
-
             this.database = await this.cosmosClient.CreateDatabaseIfNotExistsAsync(databaseId);
-            Console.WriteLine("Created Database: {0}\n", this.database.Id);
         }
         public async Task CreateCosmosContainers(string level1, string level2, string level3, string containerName)
         {
@@ -56,7 +54,6 @@ namespace Viva
                 {
                     IndexingPolicy = indexingPolicy
                 };
-
             } 
             else 
             {
@@ -67,9 +64,7 @@ namespace Viva
                 };
             }
             container = await database.CreateContainerIfNotExistsAsync(containerProperties, throughput: 400);
-            Console.WriteLine("Container created: {0}\n", this.container.Id);
         }
-
         public async Task CreateTransactionRecord(string db, string cont, PaymentTransactions transRecord)
         {
             Container transactioncontainer = cosmosClient.GetDatabase(db).GetContainer(cont);

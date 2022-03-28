@@ -10,7 +10,6 @@ namespace Viva
         public string walletId { get; set; }
         public string subwalletId { get; set; }
     }
-
     public class Wallet
     {
         public string walletId { get; set; }
@@ -25,13 +24,11 @@ namespace Viva
         public string clientId { get; set; }
         public List<Wallet> wallets { get; set; }
     }
-
     public class Subwallet
     {
         public string subWalletId { get; set; }
         public double balance { get; set; }
     }
-
     public class Card
     {
         public string cardnumber { get; set; }
