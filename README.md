@@ -214,6 +214,7 @@ IndexingPolicy indexingPolicy = new IndexingPolicy
 | > 1 | Multi Write | Session, Consistent Prefix, Eventual | < 15 minutes | 0 |
 | > 1 | Multi Write | Bounded Staleness | K & T* | 0 |
 | > 1 | Single Write | Strong | N/A | N/A |
+
 *Number of K updates of an item or T time. In >1 regions, K=100,000 updates or T=5 minutes.
 
 ## Synapse Link
