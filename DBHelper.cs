@@ -14,13 +14,11 @@ namespace Viva
         private Container container;
         private bool preview = false; 
         private string databaseId;
-        private static readonly string EndpointUri = "https://vivadb.documents.azure.com:443/";
-        //ConfigurationManager.AppSettings["EndPointUri"];
-        private static readonly string PrimaryKey = "";
+        private static readonly string EndpointUri = ConfigurationManager.AppSettings.Get("EndpointUri");
+        private static readonly string PrimaryKey = ConfigurationManager.AppSettings.Get("PrimaryKey");
         public DBHelper(string Name)
         {
             this.cosmosClient = new CosmosClient(EndpointUri, PrimaryKey, new CosmosClientOptions() { ApplicationName = Name });
-            
         }
         public DBHelper(string Name, bool preview)
         {

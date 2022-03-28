@@ -5,7 +5,7 @@ namespace Viva
     {
         public string id { get; set; }
         public Guid transactionId { get; set; }
-        public string transactionDate { get; set; }
+        public string transactionDate { get; set; } = string.Empty;
         public string cardNumber { get; set; }
         public string walletId { get; set; }
         public string subwalletId { get; set; }
