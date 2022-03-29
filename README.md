@@ -4,16 +4,17 @@ Optimizing CosmosDB for mission critical applications.
 
 ## Designing a database
 
-When you deploy Cosmos DB it consists of one account. Each account can have multiple databases. When creating a database you assign a fixed number of Request Units (RU's) or you choose to let Microsoft manage the Autoscaling between n-RU's and n/10-RU's.  
+When you deploy Cosmos DB it consists of one account. Each account can have multiple databases and every database can have one to many containers. CosmosDBs execution capacity unit us Request Units (RU's). RU usage can be dedicated to the Database Scope to be shared by the underlying Containers, or can be dedicated to a single Container scope. Independent from whether you consume RU's on Database wide or Container level, when assigning RU usage behavior there two options  you can either assign a fixed number of Request Units (RU's)  or you choose to let Microsoft manage the Autoscaling between customer decided minimum n-RU's and maximum n/10-RU's.
+If you chose the latter the infrastructure supporting the maximum capacity is created upfront. If you chose the former the infrastructure gets provisioned by the manual scale operations that may be performed upon need. In cosmos DB the effect of scale up on underlying infrastructure is irreversible. Cosmos DB scales by adding new compute nodes to the existing cluster to support required data size or RU capacity. The given RU capacity is always equally shared by the existing compute nodes. For more information on scaling CosmosDB you can refer to the this article [Background on scaling RU's](https://docs.microsoft.com/azure/cosmos-db/scaling-provisioned-throughput-best-practices#background-on-scaling-rus) on Microsoft CosmosDB documentation.
 
-When creating a new database and you don't know the load, it is recommended to monitor this closely and adjust.
+When creating a new database and you don't know the load, it is recommended to monitor this closely and adjust If you have somewhat an idea you can use [CosmosDB Capacity Calculator](https://cosmos.azure.com/capacitycalculator/) to have a rough estimate as a better chosen starting point. Starting small and then scaling up upon need by monitoring the application can be is a good practice.
 
 Cosmos DB exposes a set of API's. Each API has different functionality and SDK's.
 
 * Core(SQL) API
 This API stores data in document format. It offers the best end-to-end experience as we have full control over the interface, service, and the SDK client libraries. Any new feature that is rolled out to Azure Cosmos DB is first available on SQL API accounts.
 * API for MongoDB
-This API stores data in a document structure, via BSON format. It is compatible with MongoDB wire protocol.
+This API stores data in a document structure, via BSON format. It is compatible with MongoDB wire protocol(up to 4.0).
 * Cassandra API
 This API stores data in column-oriented schema. Apache Cassandra is a highly distributed, horizontally scaling approach to storing large volumes of data while offering a flexible approach to a column-oriented schema.
 * Gremlin API
@@ -25,13 +26,13 @@ The remainder of this article will focus on the Core SQL API.
 
 ## Distribution
 
-Each database consists a collection with n number of Container. Each container can have one or many logical partitions and physical partitions. Physical partitions are the nodes Cosmos DB is built on and are automatically provisioned as your data size or throughput grows. Each physical partition contains 20 GB of data and has a throughput of 10k RU's. Each physical partition has n number of logical partitions, but a logical partition can not grow larger than a physical partition. When creating new collections the partitioning happens on 6k RU's and allow you to grow to 10k without having to reshuffle.  
+Each database consists of n number of Container. Each container can have one or many logical partitions and physical partitions hosting the logical partitions . Physical partitions are the nodes Cosmos DB is built on and are automatically provisioned as your data size or throughput grows. Each physical partition can contain up tos 20 GB of data and has a maximum throughput capacity of 10k RU's. Each physical partition can have  n number of logical partitions, but a logical partition can not grow larger than a physical partition, hence 1 logical partition can be hosted only on 1 physical partition while 1 physical partition can host n logical partitions. When creating new containers if the given initial RU is more than around 8K the CosmosDB gets provisioned as more than 1 physical partition, where each partition can have an RU value between 4k & 6k RU's and this allow you to grow to 10k without having to reshuffle.  So if your CosmosDB has only 1 physical partition it can grow to 10K RUs without provisioning new nodes, but if you create your CosmosDB starting with 10K RU's you will end up with at least 2 physical partition each using 5K RU's and the CosmosDB  can scale up to 20K RU's without any new node provisioning/
 
 ### Selecting a partition key
 
-When designing your Cosmos DB it is essential to chose the right partition key to be able to achieve performance and scalability. You have three options; Single value key, Synthetic key or Hierarchial keys. Cosmos DB uses the hash of the partition key value to determine which logical and physical partition the data lives on. Ideally you want to have an even distribution of logical partitions, with documents and RU usage spread evenly across partitions.
+When designing your Cosmos DB it is essential to chose the right partition key to be able to achieve performance and scalability. You have three options; Single value key, Synthetic key or Hierarchial keys(this feature is in preview). Cosmos DB uses the hash of the partition key value to determine which logical and physical partition the data lives on. Ideally you want to have an even distribution of logical partitions  by size and read requests as possible, with documents and RU usage spread evenly across partitions.
 The most efficient way to retrieve a document is by using the documents unique ID and the partition key. This will result in a "point read". For read heavy workloads choose a key that is part of the filter. To add more cardinality to our key, we can use a synthetic key, combining multiple
-attributes.
+attributes. which would require the queries to do the the same combination operation. The cons of building a synthetic key is that you can not benefit from it for individual pieces of the synthetic key.
 
 ```sql
 SELECT * FROM n WHERE "Partition_Key" = 123 
