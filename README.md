@@ -38,23 +38,32 @@ attributes. which would require the queries to do the the same combination opera
 SELECT * FROM n WHERE "Partition_Key" = 123 
 ```
 
-Multi item transactions has to be performed on the same logical partition.
+Multi item transactions has to be performed on the same logical partition in other words, ACID transactions are only supported in a single container-logical partition scope. For more information on multi item transaction you can refer to [Multi Item Transactions on CosmosDB](https://docs.microsoft.com/azure/cosmos-db/sql/database-transactions-optimistic-concurrency#multi-item-transactions) article.
 
 ### Hierarchical partition key
 
-With hierarchical partition keys, partition your container with up to three levels of partition keys.
+With hierarchical partition keys, you can partition your container with up to three levels of partition keys.
 
 ```json
-|- PartitionKey1
-    |- PartitionKey2
-        |- PartitionKey3
+|- PartitionKey1   -> Tenant
+    |- PartitionKey2 -> User
+        |- PartitionKey3 -> OrderDate
 ```
 
-Using hierarchical partition keys, it is now possible to retrieve data that spans multiple physical partitions.
+for example
 
-At the same time, the queries will still be efficient. All queries that target a single tenant will be routed to the subset of partitions the data is on, avoiding the full cross-partition fanout query that would be required when using a synthetic partition key strategy.
+```json
+|- Tenant
+    |-  User
+        |-  OrderDate
+```
 
-* Hierarchical partition keys are in preview *
+Using hierarchical partition keys, it is now possible to retrieve data that spans multiple physical partitions with using higher level keys in the hierarchy. 
+
+At the same time, the queries will still be efficient. For example  all queries that target a single Tenant will be routed to the subset of physical partitions that the data is on, avoiding the full cross-partition fanout query that would be required when using a synthetic or regular partition key strategy.
+Some designs may make useful putting different documents into one container. in such cases, both documents must have all the partition key columns in the same json level. Hierarchical partition keys would not function if the keys are in different jason levels in different documents like one document having the keys as nested jsons while the other as a plain json.
+
+* Hierarchical partition keys are in private preview *
 
 ### Design Recommendations
 
@@ -66,7 +75,7 @@ At the same time, the queries will still be efficient. All queries that target a
 
 ### No-SQL denormalization
 
-In these two examples you’ll see denormalization of the data model. Option 1 has separated transactions adn use a weak relational link between the entities using the unique Id. The second (denormalized) example doesn’t need a second lookup in the client container. You can just fetch the document and have the transactions embedded in the document.
+In these two examples you’ll see denormalization of the data model. Option 1 has separated transactions and use a weak relational link between the entities using the unique Id. The second (denormalized) example doesn’t need a second lookup in the client container. You can just fetch the document and have the transactions embedded in the document.
 With the denormalized model each container can be scaled independently.
 
 #### Option 1 - two separate containers
@@ -176,6 +185,7 @@ All fields in a document are indexed automatically. Cosmos DB has 3 different ty
 Cosmos DB is schema-less and index all your data regardless of the data model. This is the Range-index.
 
 You can define custom indexing policies for your containers. This allows you to improve query performance and consistency. Index policies are defined as the example below with including and excluding paths. You can also specify document attributes, data types and ordering sequence.
+When you change your indexing policy the new index build operation utilizes your unused RUs without effecting your existing workload.
 
 ```csharp
 IndexingPolicy indexingPolicy = new IndexingPolicy
@@ -230,7 +240,7 @@ SELECT A FROM N WHERE id = 123
 
 When setting up Synapse Link for Cosmos DB it has an independent TTL - Time to live, Analytical data can live forever and the more expensive transactional data can have a shorter retention.
 
-* TTL is set at container level, each container can have different TTL's.
+* The analytical TTL is set at container level, each container can have different TTL's.
 
 * The data exported to the data lake using a highly compressed Parquet format - up to 90% reduction in size.
 * No cost of replicating the data and no impact on the transactional store, no RU's used
